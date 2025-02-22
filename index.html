@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeatherApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@4.5.2/dist/flatly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex justify-content-center">
+        <div class="card col 12 col-md-6 col-lg-4">
+            <div class="card-body" id="divWeather">
+                <h1 class="text-center text-primary" aria-label="Dev's 3100 Weather App">Dev's 3100 Weather App</h1>
+            </div>
+            <div class="card-Body" id="divTemperature">
+            </div>
+            <div class="card-Body" id="divHumidity">
+            </div>
+            <p class="text-center text-primary">Thanks to https://api.open-meteo.com/en/docs for the weather information!</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        //start global variables
+        const strBaseURL = "https://api.open-meteo.com/v1/forecast?latitude=36.156590&longitude=-85.501007&current=temperature_2m,relative_humidity_2m,precipitation,rain,showers,snowfall&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch"
+        //end global variables
+
+        //get the weather data function
+        async function queryWeather(){
+            try{
+                const objResponse = await fetch(strBaseURL)
+                if (!objResponse.ok) {
+                    throw new Error(`Response status: ${objResponse.status}`)
+                }
+
+                const json = await objResponse.json()
+                console.log(json)
+
+                //variable for the current conditions
+                let strWeatherCondition = ""
+
+                //Start figuring out which weather picture to use
+                if(json["current"]["precipitation"] > 0){
+                    strWeatherCondition = "precipitation"
+                }
+
+                if(json["current"]["rain"] > 0){
+                    strWeatherCondition = "rain"
+                }
+
+                if(json["current"]["snowfall"] > 0){
+                    strWeatherCondition = "snow"
+                }
+
+                if(strWeatherCondition == "precipitation"){
+                    document.querySelector('#divWeather').innerHTML += `<img src="images/precipitation.png" alt="Cloudy and light rain outside" style="max-width: 80%;">`
+                }
+
+                if(strWeatherCondition == "rain"){
+                    document.querySelector('#divWeather').innerHTML += `<img src="images/rainy.png" alt="rainy outside" style="max-width: 100%;">`
+                }
+
+                if(strWeatherCondition == "snow"){
+                    document.querySelector('#divWeather').innerHTML += `<img src="images/snow.png" alt="snowing outside" style="max-width: 100%;">`
+                }
+
+                if(strWeatherCondition == ""){
+                    document.querySelector('#divWeather').innerHTML += `<img src="images/sunny.png" alt="sunny outside" style="max-width: 100%;">`
+                }
+                //End figuring out which weather picture to use
+
+                //Sets the temperature displayed, with an appropriate aria label
+                document.querySelector('#divTemperature').innerHTML += `<h2 class="text-center text-primary" aria-label="Temperature outside is ` + json["current"]["temperature_2m"] + ` degrees fahrenheit" id="headerTemperature"></h2>`
+                document.querySelector('#headerTemperature').innerHTML += "Temperature: " + json["current"]["temperature_2m"] + " " + json["current_units"]["temperature_2m"]
+
+                //Sets the humidity displayed, with an appropriate aria label
+                document.querySelector('#divHumidity').innerHTML += `<h2 class="text-center text-primary" aria-label="Humidity outside is ` + json["current"]["relative_humidity_2m"] + `%" id="headerHumidity"></h2>`
+                document.querySelector('#headerHumidity').innerHTML += "Humidity: " + json["current"]["relative_humidity_2m"] + "%"
+
+            } catch(error){
+                console.error(error.message)
+            }
+        }
+
+    //call the get the weather data function
+    queryWeather()
+    </script>
+</body>
+</html>
